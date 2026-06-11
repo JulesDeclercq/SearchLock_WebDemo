@@ -80,10 +80,10 @@ export default function App() {
   return (
     <main className="app-shell">
       <section className="hero">
-        <p className="eyebrow">SearchLock browser proof of concept</p>
-        <h1>Drop an image. Get a search query. See what the product would do.</h1>
+        <p className="eyebrow">SearchLock WebDemo</p>
+        <h1>Drop an image. Get a search query.</h1>
         <p className="lead">
-          This is a browser-only demo that proves the core loop: drag in a photo, analyze it locally,
+          This is a browser demo for the core loop: drag in a photo, analyze it locally,
           generate a shopping-style query, and display matching results.
         </p>
       </section>
@@ -148,6 +148,22 @@ export default function App() {
           ) : (
             <div className="placeholder-box">Drop a file to see analysis details.</div>
           )}
+          {analysis ? (
+            <div className="keyword-box">
+              <span className="query-label">AI keywords</span>
+              <div className="keyword-chips">
+                {analysis.keywords.length > 0 ? (
+                  analysis.keywords.map((keyword) => (
+                    <span key={keyword} className="keyword-chip">
+                      {keyword}
+                    </span>
+                  ))
+                ) : (
+                  <span className="keyword-chip keyword-chip-empty">No keywords detected</span>
+                )}
+              </div>
+            </div>
+          ) : null}
           <div className="query-box">
             <span className="query-label">Generated query</span>
             <p>{query || '—'}</p>

@@ -1,3 +1,5 @@
+import { extractKeywordSignals } from './keywordExtraction';
+
 export interface AnalysisResult {
   width: number;
   height: number;
@@ -5,6 +7,7 @@ export interface AnalysisResult {
   brightnessLabel: string;
   dominantColorName: string;
   averageColor: string;
+  keywords: string[];
   generatedQuery: string;
 }
 
@@ -31,7 +34,10 @@ const categoryHints: Array<{ keywords: string[]; label: string }> = [
 ];
 
 export async function analyzeImage(file: File): Promise<AnalysisResult> {
-  const { image, width, height } = await loadImage(file);
+  const [{ image, width, height }, keywordSignals] = await Promise.all([
+    loadImage(file),
+    extractKeywordSignals(file),
+  ]);
   const canvas = document.createElement('canvas');
   const context = canvas.getContext('2d');
 
@@ -50,8 +56,19 @@ export async function analyzeImage(file: File): Promise<AnalysisResult> {
   const colorName = closestColorName(sample);
   const brightnessLabel = getBrightnessLabel(sample);
   const aspectRatioLabel = getAspectRatioLabel(width, height);
-  const category = inferCategory(file.name);
-  const generatedQuery = buildQuery({ colorName, brightnessLabel, category, aspectRatioLabel });
+  const inferredItem = inferCategory(file.name, keywordSignals.itemKeywords);
+  const generatedQuery = buildQuery({
+    brandKeywords: keywordSignals.brandKeywords,
+    colorName,
+    itemKeyword: inferredItem,
+  });
+  const keywords = uniqueCompact([
+    ...keywordSignals.brandKeywords,
+    inferredItem,
+    colorName,
+    ...keywordSignals.itemKeywords,
+    ...keywordSignals.classifierLabels.slice(0, 2),
+  ]);
 
   return {
     width,
@@ -60,6 +77,7 @@ export async function analyzeImage(file: File): Promise<AnalysisResult> {
     brightnessLabel,
     dominantColorName: colorName,
     averageColor: `rgb(${sample[0]}, ${sample[1]}, ${sample[2]})`,
+    keywords,
     generatedQuery,
   };
 }
@@ -138,26 +156,34 @@ function getAspectRatioLabel(width: number, height: number): string {
   return 'portrait';
 }
 
-function inferCategory(fileName: string): string {
+function inferCategory(fileName: string, keywordHints: string[]): string {
   const normalized = fileName.toLowerCase();
   for (const hint of categoryHints) {
     if (hint.keywords.some((keyword) => normalized.includes(keyword))) {
       return hint.label;
     }
   }
+
+  if (keywordHints.includes('bag')) return 'bag';
+  if (keywordHints.includes('shoes')) return 'shoes';
+  if (keywordHints.includes('dress')) return 'dress';
+
   return 'marketplace item';
 }
 
 function buildQuery({
+  brandKeywords,
   colorName,
-  brightnessLabel,
-  category,
-  aspectRatioLabel,
+  itemKeyword,
 }: {
+  brandKeywords: string[];
   colorName: string;
-  brightnessLabel: string;
-  category: string;
-  aspectRatioLabel: string;
+  itemKeyword: string;
 }): string {
-  return `${brightnessLabel} ${colorName} ${category} in ${aspectRatioLabel} style`;
+  const terms = uniqueCompact([itemKeyword, colorName, ...brandKeywords]);
+  return terms.join(' ');
+}
+
+function uniqueCompact(values: string[]): string[] {
+  return [...new Set(values.map((value) => value.trim()).filter(Boolean))];
 }

@@ -1,21 +1,22 @@
 # SearchLock Documentation Index
 
-This folder now contains the concise technical documentation for the browser-first version of SearchLock.
+This folder contains the condensed technical notes for the browser-first version of SearchLock.
 
 ## Read these first
 
-- `../README.md` — project overview, setup, and run instructions
-- `TECHNICAL_REFERENCE.md` — component-by-component technical summary
+- `../README.md` — full project documentation and setup guide
+- `TECHNICAL_REFERENCE.md` — component-level technical summary and AI explanation
 
-## What changed
+## What it covers
 
-The old Android-era documentation bundle was condensed to keep the repository cleaner for GitHub.
+- project goals
+- data flow
+- dependencies
+- keyword extraction layer
+- search integration
+- deployment and setup
+- interview-ready technical notes
 
-## Contents
+## Notes
 
-- Architecture overview
-- Component responsibilities
-- Dependency list
-- Environment file guidance
-- Setup and run instructions for another device
-- Short answers for project walkthroughs
+The older Android-focused documentation has been removed from the active path so the repository is cleaner and easier to review on GitHub.

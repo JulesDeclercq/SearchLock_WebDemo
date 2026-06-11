@@ -16,12 +16,18 @@ export async function searchShoppingResults(query: string): Promise<ShoppingResu
   const apiKey = import.meta.env.VITE_SERPAPI_KEY as string | undefined;
   if (apiKey) {
     try {
-      const url = new URL('https://serpapi.com/search.json');
-      url.searchParams.set('engine', 'google_shopping');
-      url.searchParams.set('q', query);
-      url.searchParams.set('api_key', apiKey);
+      // Formulate the target request URL for SerpApi
+      const targetUrl = `https://serpapi.com/search.json?engine=google_shopping&q=${encodeURIComponent(query)}&api_key=${apiKey}`;
+      
+      // Route through the CORS proxy to bypass browser security restrictions
+      const proxyUrl = `https://cors-anywhere.herokuapp.com/${targetUrl}`;
 
-      const response = await fetch(url.toString());
+      const response = await fetch(proxyUrl, {
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      });
+
       if (!response.ok) {
         throw new Error(`Shopping search failed with status ${response.status}`);
       }
@@ -48,7 +54,7 @@ export async function searchShoppingResults(query: string): Promise<ShoppingResu
         return results;
       }
     } catch {
-      // Fall back to mock results below.
+      // Fall back to mock results below if api or proxy encounters an issue.
     }
   }
 
